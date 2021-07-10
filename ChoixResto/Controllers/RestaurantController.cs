@@ -39,7 +39,7 @@ namespace ChoixResto.Controllers
             }
             if (!ModelState.IsValid)
                 return View(resto);
-            dal.CreerRestaurant(resto.Nom, resto.Telephone);
+            dal.CreerRestaurant(resto.Nom, resto.Telephone, resto.Ville, resto.Description);
             return RedirectToAction("Index");
         }
 
@@ -61,7 +61,7 @@ namespace ChoixResto.Controllers
         {
             if (!ModelState.IsValid)
                 return View(resto);
-            dal.UpdateRestaurant(resto.Id, resto.Nom, resto.Telephone);
+            dal.UpdateRestaurant(resto.Id, resto.Nom, resto.Telephone, resto.Ville, resto.Description);
             return RedirectToAction("Index");
         }
 

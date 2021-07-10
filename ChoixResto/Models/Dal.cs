@@ -21,10 +21,10 @@ namespace ChoixResto.Models
 		{
 			this._bddContext.Dispose();
 		}
-		public void CreerRestaurant(string nom, string telephone, int id=0)
+		public void CreerRestaurant(string nom, string telephone, string ville, string description, int id=0)
 		{
 
-			Resto restoToAdd = new Resto { Nom = nom, Telephone = telephone };
+			Resto restoToAdd = new Resto { Nom = nom, Telephone = telephone, Ville = ville, Description = description };
 			if(id != 0)
 			{
 				restoToAdd.Id = id;
@@ -58,13 +58,15 @@ namespace ChoixResto.Models
 			}
 		}
 
-		public void UpdateRestaurant(int id, string nom, string telephone)
+		public void UpdateRestaurant(int id, string nom, string telephone, string ville, string description)
 		{
 			Resto restoToUpdate = this._bddContext.Restos.Find(id);
 			if (restoToUpdate != null)
 			{
 				restoToUpdate.Nom = nom;
 				restoToUpdate.Telephone = telephone;
+				restoToUpdate.Ville = ville; 
+				restoToUpdate.Description = description;
 				this._bddContext.SaveChanges();
 			}
 		}
