@@ -28,7 +28,7 @@ Parameters:
   GitRepo:
     Type: String
     Description: ...
-    Default: ChoixRestoCICID
+    Default: ChoixRestoHtmlCss
   GithubUser:
     Type: String
     Description: ...
