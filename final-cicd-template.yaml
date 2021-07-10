@@ -1,6 +1,9 @@
 AWSTemplateFormatVersion: 2010-09-09
 Description: My First template cloudformation
 Parameters:
+  Token:
+    Type: String
+    Description: Github token.
   MyPublicIP:
     Type: String
     Description: My own public IP.
@@ -249,8 +252,8 @@ Resources:
           - { environment: !Ref Env }
       SecretString: 
         !Sub
-          - '{"github_access_token_${environment}": "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"}'
-          - { environment: !Ref Env }         
+          - '{"github_access_token_${environment}": "${token}"}'
+          - { environment: !Ref Env, token: !Ref Token }         
   CodePipeline:
     Type: 'AWS::CodePipeline::Pipeline'
     DependsOn: Secret
