@@ -4,9 +4,6 @@ files:
   - source: site 
     destination: /var/www/choixresto/site/
 hooks:
-  # ApplicationStop:
-    # - location: .aws/stopApplication.sh
-    # - location: .aws/stopApplicationAuthentication.sh
   ApplicationStart:
     - location: .aws/stopApplication.sh
     - location: .aws/startApplication.sh 

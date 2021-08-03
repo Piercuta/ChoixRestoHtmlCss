@@ -16,6 +16,3 @@ phases:
         - find . -type f -name "appsettings.json" -print0 | xargs -0 sed -i -e "s|{cs}|$CS|g"
         - dotnet restore
         - dotnet publish -o site
-        - cd  ChoixResto/
-        - cat appsettings.json
-        - cd ..
