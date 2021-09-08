@@ -14,7 +14,7 @@ namespace ChoixResto.Models
 		[MaxLength(20)]
 		public string Prenom { get; set; }
 		[Required]
-		[MaxLength(20)]
+		[MaxLength(15)]
 		public string Password { get; set; }
 		public string Role { get; set; }
 	}
