@@ -20,6 +20,7 @@ namespace ChoixResto.Models
 		public string Telephone { get; set; }
 
 		public string Description { get; set; }
+		[MaxLength(20)]
 		public string Ville { get; set; }
 
 	}
