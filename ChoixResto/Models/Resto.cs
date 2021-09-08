@@ -12,6 +12,7 @@ namespace ChoixResto.Models
 	{
 		public int Id { get; set; }
 		[Required(ErrorMessage = "Le nom du restaurant doit être rempli !")]
+		[MaxLength(25)]
 		public string Nom { get; set; }
 
 		[MaxLength(10)]
