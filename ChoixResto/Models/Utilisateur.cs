@@ -11,8 +11,10 @@ namespace ChoixResto.Models
 		public int Id { get; set; }
 		[Display(Name = "Prénom")]
 		[Required]
+		[MaxLength(20)]
 		public string Prenom { get; set; }
 		[Required]
+		[MaxLength(20)]
 		public string Password { get; set; }
 		public string Role { get; set; }
 	}
