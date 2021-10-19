@@ -183,6 +183,7 @@ Resources:
       MultiAZ: false
       Engine: mysql
       AllocatedStorage: 5
+      PubliclyAccessible: true
   EC2SG:
     Properties:
       VpcId: !Ref VPC
