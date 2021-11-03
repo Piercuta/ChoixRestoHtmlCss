@@ -52,7 +52,9 @@ Parameters:
     Type: String
     Description: ...
     Default: Piercuta
+
 Resources:
+  
   # Network
   VPC:
     Type: AWS::EC2::VPC
@@ -63,12 +65,16 @@ Resources:
       Tags:
         - Key: Name
           Value: !Ref Env
+        - Key: env
+          Value: !Ref Env
 
   InternetGateway:
     Type: AWS::EC2::InternetGateway
     Properties:
       Tags:
         - Key: Name
+          Value: !Ref Env
+        - Key: env
           Value: !Ref Env
 
   InternetGatewayAttachment:
@@ -87,6 +93,8 @@ Resources:
       Tags:
         - Key: Name
           Value: !Sub ${Env} Public Subnet (AZ1)
+        - Key: env
+          Value: !Ref Env
 
   PublicSubnet2:
     Type: AWS::EC2::Subnet
@@ -98,6 +106,8 @@ Resources:
       Tags:
         - Key: Name
           Value: !Sub ${Env} Public Subnet (AZ2)
+        - Key: env
+          Value: !Ref Env
   
   PublicSubnet3:
     Type: AWS::EC2::Subnet
@@ -109,6 +119,8 @@ Resources:
       Tags:
         - Key: Name
           Value: !Sub ${Env} Public Subnet (AZ3)
+        - Key: env
+          Value: !Ref Env
  
   PublicRouteTable:
     Type: AWS::EC2::RouteTable
@@ -117,6 +129,8 @@ Resources:
       Tags:
         - Key: Name
           Value: !Sub ${Env} Public Routes
+        - Key: env
+          Value: !Ref Env
 
   DefaultPublicRoute:
     Type: AWS::EC2::Route
@@ -144,12 +158,16 @@ Resources:
       RouteTableId: !Ref PublicRouteTable
       SubnetId: !Ref PublicSubnet3
 
-  NoIngressSecurityGroup:
-    Type: AWS::EC2::SecurityGroup
-    Properties:
-      GroupName: "no-ingress-sg"
-      GroupDescription: "Security group with no ingress rule"
-      VpcId: !Ref VPC
+  # NoIngressSecurityGroup:
+  #   Type: AWS::EC2::SecurityGroup
+  #   Properties:
+  #     GroupName: "no-ingress-sg"
+  #     GroupDescription: "Security group with no ingress rule"
+  #     VpcId: !Ref VPC
+  #     Tags: 
+  #       - Key: env
+  #         Value: !Ref Env
+  
   # Database
   RDSInstanceSG:
     Type: 'AWS::RDS::DBSecurityGroup'
@@ -161,7 +179,10 @@ Resources:
         - CIDRIP: !Ref MyPublicIP
       Tags:
         - Key: Name
-          Value: !Sub ${Env}-mysql-instance-sg
+          Value: !Sub ${Env}-mysql-rds-sg
+        - Key: env
+          Value: !Ref Env
+
   InstanceSubnetGroup:
     Type: AWS::RDS::DBSubnetGroup
     Properties: 
@@ -171,6 +192,10 @@ Resources:
         - !Ref PublicSubnet1
         - !Ref PublicSubnet2
         - !Ref PublicSubnet3
+      Tags: 
+        - Key: env
+          Value: !Ref Env
+
   RDSInstance:
     Type: 'AWS::RDS::DBInstance'
     Properties:
@@ -183,13 +208,19 @@ Resources:
       MasterUsername: !Ref DbUser
       DBInstanceIdentifier: !Sub ${Env}-db-mysql
       MultiAZ: false
+      PubliclyAccessible: true
       Engine: mysql
       AllocatedStorage: 5
+      Tags: 
+        - Key: env
+          Value: !Ref Env
+
   # Application
   EC2SG:
+    Type: 'AWS::EC2::SecurityGroup'
     Properties:
       VpcId: !Ref VPC
-      GroupDescription: SecurityGroup for RDS environment.
+      GroupDescription: SecurityGroup for EC2 instance.
       SecurityGroupIngress:
         - CidrIp: 0.0.0.0/0
           FromPort: '22'
@@ -203,13 +234,18 @@ Resources:
           IpProtocol: tcp
           FromPort: '80'
           ToPort: '80'
-    Type: 'AWS::EC2::SecurityGroup'
+      Tags: 
+        - Key: env
+          Value: !Ref Env
+    
+
   EC2InstanceProfile:
     Type: 'AWS::IAM::InstanceProfile'
     Properties:
       Path: /
       Roles:
         - !Ref EC2InstanceRole
+
   EC2InstanceRole:
     Type: 'AWS::IAM::Role'
     Properties:
@@ -226,10 +262,30 @@ Resources:
         - 'arn:aws:iam::aws:policy/service-role/AmazonEC2RoleforSSM'
         - 'arn:aws:iam::aws:policy/AdministratorAccess'
       Path: /
+      Tags: 
+        - Key: env
+          Value: !Ref Env
   
+  ALBSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: "alb-sg"
+      GroupDescription: "Security group for alb"
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - CidrIp: 0.0.0.0/0
+          IpProtocol: tcp
+          FromPort: '80'
+          ToPort: '80'
+      Tags: 
+        - Key: env
+          Value: !Ref Env
+
   ApplicationLoadBalancer:
     Type: 'AWS::ElasticLoadBalancingV2::LoadBalancer'
     Properties:
+      SecurityGroups:
+        - !Ref ALBSecurityGroup
       Subnets: 
         - !Ref PublicSubnet1
         - !Ref PublicSubnet2
@@ -237,6 +293,9 @@ Resources:
       Tags:
         - Key: Name
           Value: !Sub ${Env}-alb
+        - Key: env
+          Value: !Ref Env
+
   ALBListener:
     Type: 'AWS::ElasticLoadBalancingV2::Listener'
     Properties:
@@ -268,6 +327,8 @@ Resources:
       Tags:
         - Key: Name
           Value: !Sub ${Env}-tg
+        - Key: env
+          Value: !Ref Env
 
   AutoScalingGroup:
     Type: 'AWS::AutoScaling::AutoScalingGroup'
@@ -337,12 +398,22 @@ Resources:
              wget 'https://aws-codedeploy-eu-west-1.s3.eu-west-1.amazonaws.com/latest/install'
              chmod +x ./install
              sudo ./install auto
+        TagSpecifications:
+          - ResourceType: volume
+            Tags: 
+              - Key: env
+                Value: !Ref Env 
+
   # CICD
   DeployApplication:
     Type: 'AWS::CodeDeploy::Application'
     Properties:
       ApplicationName: choixresto-app
       ComputePlatform: Server
+      Tags: 
+        - Key: env
+          Value: !Ref Env
+
   DeploymentGroup:
     Type: 'AWS::CodeDeploy::DeploymentGroup'
     Properties:
@@ -357,6 +428,7 @@ Resources:
       ServiceRoleArn: !GetAtt 
         - CodeDeployDGRole
         - Arn
+
   CodeDeployDGRole:
     Type: 'AWS::IAM::Role'
     Properties:
@@ -372,6 +444,10 @@ Resources:
       ManagedPolicyArns:
         - 'arn:aws:iam::aws:policy/AdministratorAccess'
       Path: /
+      Tags: 
+        - Key: env
+          Value: !Ref Env
+
   CodeBuildRole:
     Type: 'AWS::IAM::Role'
     Properties:
@@ -387,6 +463,10 @@ Resources:
       ManagedPolicyArns:
         - 'arn:aws:iam::aws:policy/AdministratorAccess'
       Path: /
+      Tags: 
+        - Key: env
+          Value: !Ref Env
+
   CodeBuild:
     Type: 'AWS::CodeBuild::Project'
     Properties:
@@ -423,6 +503,10 @@ Resources:
                 - ;database=ChoixResto
       Source:
         Type: CODEPIPELINE
+      Tags: 
+        - Key: env
+          Value: !Ref Env
+
   CodePipelineRole:
     Type: 'AWS::IAM::Role'
     Properties:
@@ -438,11 +522,19 @@ Resources:
       ManagedPolicyArns:
         - 'arn:aws:iam::aws:policy/AdministratorAccess'
       Path: /
+      Tags: 
+        - Key: env
+          Value: !Ref Env
+
   ArtifactBucket:
     Type: 'AWS::S3::Bucket'
     Properties:
       VersioningConfiguration:
         Status: Enabled
+      Tags: 
+        - Key: env
+          Value: !Ref Env
+
   Secret:
     Type: AWS::SecretsManager::Secret
     Properties: 
@@ -454,7 +546,11 @@ Resources:
       SecretString: 
         !Sub
           - '{"github_access_token_${environment}": "${token}"}'
-          - { environment: !Ref Env, token: !Ref Token }         
+          - { environment: !Ref Env, token: !Ref Token } 
+      Tags: 
+        - Key: env
+          Value: !Ref Env
+
   CodePipeline:
     Type: 'AWS::CodePipeline::Pipeline'
     DependsOn: Secret
@@ -519,4 +615,8 @@ Resources:
                 ApplicationName: !Ref DeployApplication
                 DeploymentGroupName: !Ref DeploymentGroup
               RunOrder: 1
+      Tags: 
+        - Key: env
+          Value: !Ref Env
+
 Outputs: {}
