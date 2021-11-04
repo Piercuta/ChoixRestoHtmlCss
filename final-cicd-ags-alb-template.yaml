@@ -409,15 +409,6 @@ Resources:
              wget 'https://aws-codedeploy-eu-west-1.s3.eu-west-1.amazonaws.com/latest/install'
              chmod +x ./install
              sudo ./install auto
-             echo export ApplicationName=${ApplicationName} >> /etc/profile
-             echo export DllToStart=${ApplicationName} >> /etc/profile
-             cat > /etc/profile.d/load_env.sh << 'EOF'
-
-             export DllToStart=ChoixResto.dll
-             export ApplicationName=${ApplicationName}
-
-             EOF
-             chmod a+x /etc/profile.d/load_env.sh
              
         TagSpecifications:
           - ResourceType: volume
@@ -425,6 +416,14 @@ Resources:
               - Key: env
                 Value: !Ref Env            
 
+  ParamStore:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: ApplicationName
+      Type: String
+      Value: !Ref ApplicationName
+      Description: SSM Parameter for code deploy.
+  
   # CICD
   DeployApplication:
     Type: 'AWS::CodeDeploy::Application'
