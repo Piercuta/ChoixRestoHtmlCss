@@ -1,5 +1,6 @@
 #!/bin/bash
-
+cd /etc/profile.d/
+./load_env.sh
 echo "stop application"
 cd  /var/www/${ApplicationName}/
 echo "kill $(ps aux | grep '[C]hoixResto.dll' | awk '{print $2}')"
