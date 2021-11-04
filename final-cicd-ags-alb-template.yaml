@@ -56,6 +56,10 @@ Parameters:
     Type: String
     Description: ...
     Default: choixresto
+  DllToStart:
+    Type: String
+    Description: ...
+    Default: ChoixResto.dll
 Resources:
   
   # Network
@@ -416,12 +420,20 @@ Resources:
               - Key: env
                 Value: !Ref Env            
 
-  ParamStore:
+  AppNameParamStore:
     Type: AWS::SSM::Parameter
     Properties:
       Name: ApplicationName
       Type: String
       Value: !Ref ApplicationName
+      Description: SSM Parameter for code deploy.
+  
+  DllToStartParamStore:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: DllToStart
+      Type: String
+      Value: !Ref DllToStart
       Description: SSM Parameter for code deploy.
   
   # CICD
