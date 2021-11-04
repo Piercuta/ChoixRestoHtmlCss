@@ -52,7 +52,10 @@ Parameters:
     Type: String
     Description: ...
     Default: Piercuta
-
+  ApplicationName:
+    Type: String
+    Description: ...
+    Default: choixresto
 Resources:
   
   # Network
@@ -157,32 +160,9 @@ Resources:
     Properties:
       RouteTableId: !Ref PublicRouteTable
       SubnetId: !Ref PublicSubnet3
-
-  # NoIngressSecurityGroup:
-  #   Type: AWS::EC2::SecurityGroup
-  #   Properties:
-  #     GroupName: "no-ingress-sg"
-  #     GroupDescription: "Security group with no ingress rule"
-  #     VpcId: !Ref VPC
-  #     Tags: 
-  #       - Key: env
-  #         Value: !Ref Env
   
   # Database
-  RDSInstanceSG:
-    Type: 'AWS::RDS::DBSecurityGroup'
-    Properties:
-      GroupDescription: Enable database access application
-      EC2VpcId : !Ref VPC 
-      DBSecurityGroupIngress:
-        - EC2SecurityGroupId: !GetAtt EC2SG.GroupId 
-        - CIDRIP: !Ref MyPublicIP
-      Tags:
-        - Key: Name
-          Value: !Sub ${Env}-mysql-rds-sg
-        - Key: env
-          Value: !Ref Env
-
+  
   InstanceSubnetGroup:
     Type: AWS::RDS::DBSubnetGroup
     Properties: 
@@ -196,14 +176,35 @@ Resources:
         - Key: env
           Value: !Ref Env
 
+  RDSSG:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      GroupName: "rds-sg"
+      VpcId: !Ref VPC
+      GroupDescription: SecurityGroup for RDS instance.
+      SecurityGroupIngress:
+        - SourceSecurityGroupId: !GetAtt EC2SG.GroupId 
+          FromPort: '3306'
+          ToPort: '3306'
+          IpProtocol: tcp
+        - CidrIp: !Ref MyPublicIP
+          IpProtocol: tcp
+          FromPort: '3306'
+          ToPort: '3306'
+      Tags: 
+        - Key: env
+          Value: !Ref Env
+        - Key: Name
+          Value: !Sub ${Env}-rds-sg
+
   RDSInstance:
     Type: 'AWS::RDS::DBInstance'
     Properties:
       MasterUserPassword: !Ref DbPassword
       DBInstanceClass: db.t2.micro
       DBSubnetGroupName: !Ref InstanceSubnetGroup
-      DBSecurityGroups:
-        - !Ref RDSInstanceSG
+      VPCSecurityGroups:
+        - !Ref RDSSG
       
       MasterUsername: !Ref DbUser
       DBInstanceIdentifier: !Sub ${Env}-db-mysql
@@ -219,6 +220,7 @@ Resources:
   EC2SG:
     Type: 'AWS::EC2::SecurityGroup'
     Properties:
+      GroupName: "ec2-sg"
       VpcId: !Ref VPC
       GroupDescription: SecurityGroup for EC2 instance.
       SecurityGroupIngress:
@@ -237,6 +239,8 @@ Resources:
       Tags: 
         - Key: env
           Value: !Ref Env
+        - Key: Name
+          Value: !Sub ${Env}-ec2-sg
     
 
   EC2InstanceProfile:
@@ -266,7 +270,7 @@ Resources:
         - Key: env
           Value: !Ref Env
   
-  ALBSecurityGroup:
+  ALBSG:
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupName: "alb-sg"
@@ -280,12 +284,14 @@ Resources:
       Tags: 
         - Key: env
           Value: !Ref Env
+        - Key: Name
+          Value: !Sub ${Env}-alb-sg
 
   ApplicationLoadBalancer:
     Type: 'AWS::ElasticLoadBalancingV2::LoadBalancer'
     Properties:
       SecurityGroups:
-        - !Ref ALBSecurityGroup
+        - !Ref ALBSG
       Subnets: 
         - !Ref PublicSubnet1
         - !Ref PublicSubnet2
@@ -354,13 +360,16 @@ Resources:
       Tags:
         - Key: Name
           PropagateAtLaunch: true
-          Value: !Sub ${Env}-instance-choix-resto
+          Value: !Sub ${Env}-instance-${ApplicationName}
         - Key: app
           PropagateAtLaunch: true
-          Value: choixresto
+          Value: !Ref ApplicationName
         - Key: env
           PropagateAtLaunch: true
           Value: !Ref Env
+        - Key: deploy
+          PropagateAtLaunch: true
+          Value: !Sub ${Env}-${ApplicationName}-deploy
 
   AutoScalingLaunchTemplate:
     Type: 'AWS::EC2::LaunchTemplate'
@@ -390,7 +399,7 @@ Resources:
              cd /var/
              mkdir www
              cd www/
-             mkdir choixresto
+             mkdir my-application
              sudo rpm -Uvh 'https://packages.microsoft.com/config/centos/7/packages-microsoft-prod.rpm'
              sudo yum install dotnet-sdk-3.1 -y
              yum install -y ruby
@@ -402,13 +411,13 @@ Resources:
           - ResourceType: volume
             Tags: 
               - Key: env
-                Value: !Ref Env 
+                Value: !Ref Env            
 
   # CICD
   DeployApplication:
     Type: 'AWS::CodeDeploy::Application'
     Properties:
-      ApplicationName: choixresto-app
+      ApplicationName: !Sub ${Env}-${ApplicationName}-app
       ComputePlatform: Server
       Tags: 
         - Key: env
@@ -419,12 +428,9 @@ Resources:
     Properties:
       ApplicationName: !Ref DeployApplication
       Ec2TagFilters:
-        - Key: app
+        - Key: deploy
           Type: KEY_AND_VALUE
-          Value: choixresto
-        - Key: env
-          Type: KEY_AND_VALUE
-          Value: !Ref Env
+          Value: !Sub ${Env}-${ApplicationName}-deploy
       ServiceRoleArn: !GetAtt 
         - CodeDeployDGRole
         - Arn

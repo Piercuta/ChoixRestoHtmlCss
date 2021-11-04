@@ -2,7 +2,7 @@ version: 0.0
 os: linux 
 files: 
   - source: site 
-    destination: /var/www/choixresto/site/
+    destination: /var/www/my-application/site/
 hooks:
   ApplicationStart:
     - location: .aws/stopApplication.sh
