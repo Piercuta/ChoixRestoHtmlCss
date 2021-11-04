@@ -199,6 +199,7 @@ Resources:
 
   RDSInstance:
     Type: 'AWS::RDS::DBInstance'
+    DeletionPolicy: Delete
     Properties:
       MasterUserPassword: !Ref DbPassword
       DBInstanceClass: db.t2.micro
@@ -399,7 +400,8 @@ Resources:
              cd /var/
              mkdir www
              cd www/
-             mkdir my-application
+             mkdir my-temp-dir
+             mkdir ${ApplicationName}
              sudo rpm -Uvh 'https://packages.microsoft.com/config/centos/7/packages-microsoft-prod.rpm'
              sudo yum install dotnet-sdk-3.1 -y
              yum install -y ruby
@@ -407,6 +409,7 @@ Resources:
              wget 'https://aws-codedeploy-eu-west-1.s3.eu-west-1.amazonaws.com/latest/install'
              chmod +x ./install
              sudo ./install auto
+             export DllToStart=${ApplicationName}
         TagSpecifications:
           - ResourceType: volume
             Tags: 
@@ -422,6 +425,7 @@ Resources:
       Tags: 
         - Key: env
           Value: !Ref Env
+          
 
   DeploymentGroup:
     Type: 'AWS::CodeDeploy::DeploymentGroup'
@@ -494,6 +498,9 @@ Resources:
         ComputeType: BUILD_GENERAL1_SMALL
         Image: 'aws/codebuild/amazonlinux2-x86_64-standard:3.0'
         EnvironmentVariables:
+          - Name: ApplicationName
+            Type: PLAINTEXT
+            Value: !Ref ApplicationName
           - Name: CS
             Type: PLAINTEXT
             Value: !Join 
