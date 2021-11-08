@@ -404,6 +404,7 @@ Resources:
              cd /var/
              mkdir www
              cd www/
+             echo ${Env} > env.txt
              mkdir my-temp-dir
              mkdir ${ApplicationName}
              sudo rpm -Uvh 'https://packages.microsoft.com/config/centos/7/packages-microsoft-prod.rpm'
@@ -423,7 +424,7 @@ Resources:
   AppNameParamStore:
     Type: AWS::SSM::Parameter
     Properties:
-      Name: ApplicationName
+      Name: !Sub ${Env}-application-name
       Type: String
       Value: !Ref ApplicationName
       Description: SSM Parameter for code deploy.
@@ -431,7 +432,7 @@ Resources:
   DllToStartParamStore:
     Type: AWS::SSM::Parameter
     Properties:
-      Name: DllToStart
+      Name: !Sub ${Env}-dll-to-start
       Type: String
       Value: !Ref DllToStart
       Description: SSM Parameter for code deploy.
