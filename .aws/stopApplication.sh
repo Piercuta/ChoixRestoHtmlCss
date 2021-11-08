@@ -5,4 +5,4 @@ Dll=${DllToStart:1:-1}
 echo "stop application"
 cd  /var/www/${ApplicationName:1:-1}/
 echo "kill $(ps aux | grep $Dll | awk '{print $2}')"
-kill $(ps aux | grep $Dll | awk '{print $2}') || echo "Process ChoixResto.dll was not running."
+kill $(ps aux | grep $Dll | awk '{print $2}') || echo "Process $Dll was not running."
