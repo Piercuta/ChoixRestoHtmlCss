@@ -1,8 +1,9 @@
 #!/bin/bash
 cd /var/www/
 Env=$(cat env.txt)
-ApplicationName=$(aws ssm get-parameters --region eu-west-1 --names $Env-application-name --with-decryption --query Parameters[0].Value)
-DllToStart=$(aws ssm get-parameters --region eu-west-1 --names $Env-dll-to-start --with-decryption --query Parameters[0].Value)
+AppName=$(cat application_name.txt)
+ApplicationName=$(aws ssm get-parameters --region eu-west-1 --names $Env-$AppName --with-decryption --query Parameters[0].Value)
+DllToStart=$(aws ssm get-parameters --region eu-west-1 --names $Env-$AppName-dll-to-start --with-decryption --query Parameters[0].Value)
 echo ${ApplicationName}
 echo ${DllToStart} 
 # we remove first and last quote get with ssm
