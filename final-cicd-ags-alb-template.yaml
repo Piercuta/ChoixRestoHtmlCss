@@ -648,6 +648,7 @@ Resources:
       RoleArn: !GetAtt 
         - CodePipelineRole
         - Arn
+      RestartExecutionOnUpdate: true
       Stages:
         - Actions:
             - Name: SourceAction
@@ -666,7 +667,7 @@ Resources:
                     !Sub
                       - '{{resolve:secretsmanager:github_token_${environment}:SecretString:github_access_token_${environment}}}'
                       - { environment: !Ref Env }
-                PollForSourceChanges: false
+                PollForSourceChanges: true
               RunOrder: 1
           Name: SOURCE
         - Name: Build
