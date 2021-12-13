@@ -238,9 +238,9 @@ Resources:
           ToPort: '5000'
           IpProtocol: tcp
         - CidrIp: 0.0.0.0/0
+          FromPort: '5001'
+          ToPort: '5001'
           IpProtocol: tcp
-          FromPort: '80'
-          ToPort: '80'
       Tags: 
         - Key: env
           Value: !Ref Env
@@ -286,6 +286,10 @@ Resources:
           IpProtocol: tcp
           FromPort: '80'
           ToPort: '80'
+        - CidrIp: 0.0.0.0/0
+          IpProtocol: tcp
+          FromPort: '443'
+          ToPort: '443'
       Tags: 
         - Key: env
           Value: !Ref Env
@@ -307,17 +311,29 @@ Resources:
         - Key: env
           Value: !Ref Env
 
-  ALBListener:
+  ALBListener80:
     Type: 'AWS::ElasticLoadBalancingV2::Listener'
     Properties:
       DefaultActions:
         - Type: forward
-          TargetGroupArn: !Ref ALBTargetGroup
+          TargetGroupArn: !Ref ALBTargetGroup5000
       LoadBalancerArn: !Ref ApplicationLoadBalancer
       Port: '80'
       Protocol: HTTP
 
-  ALBTargetGroup:
+  ALBListener443:
+    Type: 'AWS::ElasticLoadBalancingV2::Listener'
+    Properties:
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref ALBTargetGroup5001
+      LoadBalancerArn: !Ref ApplicationLoadBalancer
+      Port: '443'
+      Protocol: HTTPS
+      Certificates: 
+        - CertificateArn: arn:aws:acm:eu-west-1:647408608766:certificate/a5b6add8-26ef-4a5b-95c1-0469f2a2f82d
+
+  ALBTargetGroup5000:
     Type: 'AWS::ElasticLoadBalancingV2::TargetGroup'
     Properties:
       HealthCheckPath: /Login/Index
@@ -325,6 +341,30 @@ Resources:
       HealthCheckTimeoutSeconds: 5
       HealthyThresholdCount: 2
       Port: 5000
+      Protocol: HTTP
+      UnhealthyThresholdCount: 5
+      VpcId: !Ref VPC
+      TargetGroupAttributes:
+        - Key: stickiness.enabled
+          Value: 'true'
+        - Key: stickiness.type
+          Value: lb_cookie
+        - Key: stickiness.lb_cookie.duration_seconds
+          Value: '30'
+      Tags:
+        - Key: Name
+          Value: !Sub ${Env}-tg
+        - Key: env
+          Value: !Ref Env
+
+  ALBTargetGroup5001:
+    Type: 'AWS::ElasticLoadBalancingV2::TargetGroup'
+    Properties:
+      HealthCheckPath: /Login/Index
+      HealthCheckIntervalSeconds: 10
+      HealthCheckTimeoutSeconds: 5
+      HealthyThresholdCount: 2
+      Port: 5001
       Protocol: HTTP
       UnhealthyThresholdCount: 5
       VpcId: !Ref VPC
@@ -361,7 +401,8 @@ Resources:
       HealthCheckType: ELB
       HealthCheckGracePeriod: '300'
       TargetGroupARNs:
-        - !Ref ALBTargetGroup
+        - !Ref ALBTargetGroup5000
+        - !Ref ALBTargetGroup5001
       Tags:
         - Key: Name
           PropagateAtLaunch: true
@@ -447,7 +488,6 @@ Resources:
         - Key: env
           Value: !Ref Env
           
-
   DeploymentGroup:
     Type: 'AWS::CodeDeploy::DeploymentGroup'
     Properties:
@@ -459,6 +499,15 @@ Resources:
       ServiceRoleArn: !GetAtt 
         - CodeDeployDGRole
         - Arn
+      AutoScalingGroups:
+        - Ref: AutoScalingGroup
+      LoadBalancerInfo:
+        TargetGroupInfoList:
+          - Name: !GetAtt ALBTargetGroup5000.TargetGroupName
+      AutoRollbackConfiguration:
+        Enabled: true
+        Events:
+          - DEPLOYMENT_FAILURE
 
   CodeDeployDGRole:
     Type: 'AWS::IAM::Role'
