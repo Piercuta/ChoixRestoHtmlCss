@@ -1,4 +1,8 @@
 #!/bin/bash
+# to remove once you set bash_profile correctly
+export DOTNET_ROOT=/tmp/dotnet
+export PATH=$PATH:$DOTNET_ROOT
+# end to remove
 cd /var/www/
 Env=$(cat env.txt)
 AppName=$(cat application_name.txt)
