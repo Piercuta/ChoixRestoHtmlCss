@@ -21,7 +21,7 @@ Parameters:
   Token:
     Type: String
     Description: Github token.
-    Default: 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
+    Default: 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
   MyPublicIP:
     Type: String
     Description: My own public IP.
@@ -452,7 +452,7 @@ Resources:
     Properties:
       LaunchTemplateName: !Sub ${Env}-${ApplicationName}-lt
       LaunchTemplateData:
-        ImageId: ami-063d4ab14480ac177
+        ImageId: ami-04dd4500af104442f
         InstanceType: t2.micro
         IamInstanceProfile:
           Name: !Ref EC2InstanceProfile
@@ -470,20 +470,35 @@ Resources:
         UserData:
           Fn::Base64: !Sub |
              #!/bin/bash -xe
-             cd /var/
-             mkdir www
-             cd www/
-             echo ${Env} > env.txt
-             echo ${ApplicationName} > application_name.txt
-             mkdir my-temp-dir
-             mkdir ${ApplicationName}
-             sudo rpm -Uvh 'https://packages.microsoft.com/config/centos/7/packages-microsoft-prod.rpm'
-             sudo yum install dotnet-sdk-3.1 -y
+             echo "START user data instructions"
+             
              yum install -y ruby
              cd /home/ec2-user/
              wget 'https://aws-codedeploy-eu-west-1.s3.eu-west-1.amazonaws.com/latest/install'
              chmod +x ./install
              sudo ./install auto
+             
+             cd  /tmp/
+             curl https://download.visualstudio.microsoft.com/download/pr/3c98126b-50f5-4497-8ffd-18d17a3f6b95/044d0f20256fd9bf2971f8da9a0364e4/dotnet-sdk-3.1.416-linux-x64.tar.gz --output dotnet-sdk-3.1.416-linux-x64.tar.gz
+             DOTNET_FILE=dotnet-sdk-3.1.416-linux-x64.tar.gz
+             export DOTNET_ROOT=/tmp/dotnet
+             mkdir -p "$DOTNET_ROOT" && tar zxf "$DOTNET_FILE" -C "$DOTNET_ROOT"
+            
+             echo ${Env} > env.txt
+             echo ${ApplicationName} > application_name.txt
+             echo ${DllToStart} > dll_to_start.txt
+
+             echo "END user data instructions"
+            #  sudo -i
+            #  echo export DB_PASSWORD=my_password >> /etc/profile
+            #  echo "export PATH=$PATH:/tmp/dotnet" >> /etc/profile
+            #  export DOTNET_ROOT=$(pwd)/dotnet
+            #  export PATH=$PATH:$DOTNET_ROOT
+            #  export PATH=$PATH:/tmp/dotnet
+            #  cd ~/
+            #  sed 's|bin|bin:$HOME\/.dotnet|g' .bash_profile
+            #  echo "export DOTNET_ROOT=\$HOME/.dotnet" >> .bash_profile
+            
              
         TagSpecifications:
           - ResourceType: volume
@@ -491,21 +506,21 @@ Resources:
               - Key: env
                 Value: !Ref Env            
 
-  AppNameParamStore:
-    Type: AWS::SSM::Parameter
-    Properties:
-      Name: !Sub ${Env}-${ApplicationName}
-      Type: String
-      Value: !Ref ApplicationName
-      Description: SSM Parameter for code deploy.
+  # AppNameParamStore:
+  #   Type: AWS::SSM::Parameter
+  #   Properties:
+  #     Name: !Sub ${Env}-${ApplicationName}
+  #     Type: String
+  #     Value: !Ref ApplicationName
+  #     Description: SSM Parameter for code deploy.
   
-  DllToStartParamStore:
-    Type: AWS::SSM::Parameter
-    Properties:
-      Name: !Sub ${Env}-${ApplicationName}-dll-to-start
-      Type: String
-      Value: !Ref DllToStart
-      Description: SSM Parameter for code deploy.
+  # DllToStartParamStore:
+  #   Type: AWS::SSM::Parameter
+  #   Properties:
+  #     Name: !Sub ${Env}-${ApplicationName}-dll-to-start
+  #     Type: String
+  #     Value: !Ref DllToStart
+  #     Description: SSM Parameter for code deploy.
   
   # CICD
   DeployApplication:
@@ -693,6 +708,7 @@ Resources:
                 OAuthToken: 
                     !Sub
                       - '{{resolve:secretsmanager:github_token_${environment}_${application_name}:SecretString:github_access_token_${environment}_${application_name}}}'
+                      # - '{{resolve:secretsmanager:github_token_test_choixresto:SecretString:github_access_token_test_choixresto}}'
                       - { environment: !Ref Env, application_name: !Ref ApplicationName }
                 PollForSourceChanges: true
               RunOrder: 1
