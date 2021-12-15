@@ -1,9 +1,5 @@
-build := $(shell date +'%d/%m/%Y %H:%M')
-flags := -s -w -X
-# go build -race
-
 build:
-	echo build
+	dotnet publish -o my-website
 
 patch:
 	echo patch
