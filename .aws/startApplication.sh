@@ -12,7 +12,7 @@ echo ${DllToStart}
 # we remove first and last quote get with ssm
 cd /var/www/
 mkdir ${ApplicationName}
-sudo cp -R /var/www/my-temp-dir/* /var/www/${ApplicationName}
+sudo cp -R /var/www/my-temp-dir/* /var/www/${ApplicationName}/
 echo "start application"
 cd /var/www/${ApplicationName}/
 echo "dotnet ${DllToStart} > /dev/null 2>&1 &"
