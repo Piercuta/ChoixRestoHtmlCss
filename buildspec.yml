@@ -13,6 +13,7 @@ phases:
         - ls -hal
     build:
         commands:
+        # replace connection string in appsettings.json
         - find . -type f -name "appsettings.json" -print0 | xargs -0 sed -i -e "s|{cs}|$CS|g"
-        - dotnet restore
-        - dotnet publish -o my-website
+        # MakeFile build (dotnet publish)
+        - make build
