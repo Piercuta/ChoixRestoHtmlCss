@@ -6,6 +6,4 @@ echo "stop application"
 cd  /var/www/${ApplicationName}/
 echo "kill $(ps aux | grep $DllToStart | awk '{print $2}')"
 kill $(ps aux | grep $DllToStart | awk '{print $2}') || echo "Process $DllToStart was not running."
-cd ..
-rm -rf ${ApplicationName}/
-ls -a
+rm -rf /var/www/${ApplicationName}/
