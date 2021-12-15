@@ -4,15 +4,15 @@
 export DOTNET_ROOT=/tmp/dotnet
 export PATH=$PATH:$DOTNET_ROOT
 # end to remove
-
-cd /var/www/
-Env=$(cat env.txt)
-ApplicationName=$(cat application_name.txt)
-DllToStart=$(cat dll_to_start.txt)
+Env=$(cat /tmp/env.txt)
+ApplicationName=$(cat /tmp/application_name.txt)
+DllToStart=$(cat /tmp/dll_to_start.txt)
 echo ${Env}
 echo ${ApplicationName}
 echo ${DllToStart} 
 # we remove first and last quote get with ssm
+cd /var/www/
+mkdir ${ApplicationName}
 sudo cp -R /var/www/my-temp-dir/* /var/www/${ApplicationName}
 echo "start application"
 cd /var/www/${ApplicationName}/
