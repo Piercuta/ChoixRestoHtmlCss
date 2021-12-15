@@ -21,7 +21,7 @@ Parameters:
   Token:
     Type: String
     Description: Github token.
-    Default: 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
+    Default: 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
   MyPublicIP:
     Type: String
     Description: My own public IP.
