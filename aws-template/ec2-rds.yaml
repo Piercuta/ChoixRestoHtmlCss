@@ -1,0 +1,101 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Template for rds and ec2 instances
+
+Parameters:
+  MyIp:
+    Description: Please enter your public ip adress
+    Type: String
+    Default: 154.56.88.88/32
+  MyKeyName:
+    Description: Please enter one of your keyname
+    Type: String
+    Default: pcourt-01
+  AmiId:
+    Description: Please enter a ami id
+    Type: String
+    Default: ami-04dd4500af104442f
+
+Resources:
+  # Rds
+
+  RDSSecurityGroup:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      GroupName: rds-mysql-db
+      GroupDescription: SecurityGroup for RDS instance.
+      SecurityGroupIngress:
+        - SourceSecurityGroupId: !GetAtt EC2SecurityGroup.GroupId 
+          FromPort: '3306'
+          ToPort: '3306'
+          IpProtocol: tcp
+        - CidrIp: !Ref MyIp
+          IpProtocol: tcp
+          FromPort: '3306'
+          ToPort: '3306'
+
+  RDSInstance:
+    Type: 'AWS::RDS::DBInstance'
+    DeletionPolicy: Delete
+    Properties:
+      MasterUserPassword: Coucou123!
+      DBInstanceClass: db.t2.micro
+      VPCSecurityGroups:
+        - !GetAtt RDSSecurityGroup.GroupId
+      MasterUsername: admin
+      DBInstanceIdentifier: db-rds-mysql
+      MultiAZ: false
+      PubliclyAccessible: true
+      Engine: mysql
+      AllocatedStorage: 5
+  # EC2
+ 
+  EC2SecurityGroup:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      GroupName: ec2-instance-sg
+      GroupDescription: SecurityGroup for EC2 instance.
+      SecurityGroupIngress:
+        - CidrIp: 0.0.0.0/0
+          FromPort: '22'
+          ToPort: '22'
+          IpProtocol: tcp       
+    
+  EC2InstanceProfile:
+    Type: 'AWS::IAM::InstanceProfile'
+    Properties:
+      Path: /
+      Roles:
+        - !Ref EC2InstanceRole
+
+  EC2InstanceRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      RoleName:  EC2RoleForSSM
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - ec2.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      ManagedPolicyArns:
+        - 'arn:aws:iam::aws:policy/service-role/AmazonEC2RoleforSSM'
+        - 'arn:aws:iam::aws:policy/AdministratorAccess'
+      Path: /
+      
+  EC2Instance: 
+    Type: AWS::EC2::Instance
+    Properties: 
+      InstanceType: t2.micro
+      ImageId: !Ref AmiId
+      KeyName: !Ref MyKeyName
+      IamInstanceProfile: !Ref EC2InstanceProfile
+      SecurityGroups: 
+        - !Ref EC2SecurityGroup
+      Tags: 
+        - Key: Name
+          Value: ec2-cf-instance
+
+Outputs: {}
