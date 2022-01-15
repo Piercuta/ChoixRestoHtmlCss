@@ -277,7 +277,8 @@ Resources:
         - Arn
       RestartExecutionOnUpdate: true
       Stages:
-        - Actions:
+        - Name: Source
+          Actions:
             - Name: SourceAction
               ActionTypeId:
                 Category: Source
@@ -293,34 +294,34 @@ Resources:
                 OAuthToken: '{{resolve:secretsmanager:github_token:SecretString:github_access_token}}'
                 PollForSourceChanges: true
               RunOrder: 1
-            - Name: Build
-              Actions:
-                - Name: BuildAction
-                  ActionTypeId:
-                    Category: Build
-                    Owner: AWS
-                    Version: '1'
-                    Provider: CodeBuild
-                  InputArtifacts:
-                    - Name: SourceArtifact
-                  OutputArtifacts:
-                    - Name: BuildArtifact
-                  Configuration:
-                    ProjectName: !Ref CodeBuild
-                  RunOrder: 1
-            - Name: Deploy
-              Actions:
-                - Name: DeployAction
-                  InputArtifacts:
-                    - Name: BuildArtifact
-                  ActionTypeId:
-                    Category: Deploy
-                    Owner: AWS
-                    Version: '1'
-                    Provider: CodeDeploy
-                  Configuration:
-                    ApplicationName: !Ref DeployApplication
-                    DeploymentGroupName: !Ref DeploymentGroup
-                  RunOrder: 1
+        - Name: Build
+          Actions:
+            - Name: BuildAction
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Version: '1'
+                Provider: CodeBuild
+              InputArtifacts:
+                - Name: SourceArtifact
+              OutputArtifacts:
+                - Name: BuildArtifact
+              Configuration:
+                ProjectName: !Ref CodeBuild
+              RunOrder: 1
+        - Name: Deploy
+          Actions:
+            - Name: DeployAction
+              InputArtifacts:
+                - Name: BuildArtifact
+              ActionTypeId:
+                Category: Deploy
+                Owner: AWS
+                Version: '1'
+                Provider: CodeDeploy
+              Configuration:
+                ApplicationName: !Ref DeployApplication
+                DeploymentGroupName: !Ref DeploymentGroup
+              RunOrder: 1
 
 Outputs: {}
