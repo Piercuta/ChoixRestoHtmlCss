@@ -691,7 +691,8 @@ Resources:
         - Arn
       RestartExecutionOnUpdate: true
       Stages:
-        - Actions:
+        - Name: SOURCE
+          Actions:
             - Name: SourceAction
               ActionTypeId:
                 Category: Source
@@ -711,7 +712,6 @@ Resources:
                       - { client: !Ref Client, environment: !Ref Env, application_name: !Ref ApplicationName }
                 PollForSourceChanges: true
               RunOrder: 1
-          Name: SOURCE
         - Name: Build
           Actions:
             - Name: BuildAction
