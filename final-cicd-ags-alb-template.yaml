@@ -361,7 +361,7 @@ Resources:
     Type: 'AWS::ElasticLoadBalancingV2::TargetGroup'
     Properties:
       Name: !Sub ${Client}-${Env}-${ApplicationName}-tg-5000
-      HealthCheckPath: /Login/Index
+      HealthCheckPath: /
       HealthCheckIntervalSeconds: 10
       HealthCheckTimeoutSeconds: 5
       HealthyThresholdCount: 2
@@ -386,7 +386,7 @@ Resources:
     Type: 'AWS::ElasticLoadBalancingV2::TargetGroup'
     Properties:
       Name: !Sub ${Client}-${Env}-${ApplicationName}-tg-5001
-      HealthCheckPath: /Login/Index
+      HealthCheckPath: /
       HealthCheckIntervalSeconds: 10
       HealthCheckTimeoutSeconds: 5
       HealthyThresholdCount: 2
