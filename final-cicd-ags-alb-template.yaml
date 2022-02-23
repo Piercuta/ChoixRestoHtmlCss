@@ -471,12 +471,6 @@ Resources:
              #!/bin/bash -xe
              echo "START user data instructions"
              
-             yum install -y ruby
-             cd /home/ec2-user/
-             wget 'https://aws-codedeploy-eu-west-1.s3.eu-west-1.amazonaws.com/latest/install'
-             chmod +x ./install
-             sudo ./install auto
-             
              cd  /tmp/
              curl https://download.visualstudio.microsoft.com/download/pr/3c98126b-50f5-4497-8ffd-18d17a3f6b95/044d0f20256fd9bf2971f8da9a0364e4/dotnet-sdk-3.1.416-linux-x64.tar.gz --output dotnet-sdk-3.1.416-linux-x64.tar.gz
              DOTNET_FILE=dotnet-sdk-3.1.416-linux-x64.tar.gz
@@ -486,6 +480,13 @@ Resources:
              echo ${Env} > env.txt
              echo ${ApplicationName} > application_name.txt
              echo ${DllToStart} > dll_to_start.txt
+             
+             cd ..
+             yum install -y ruby
+             cd /home/ec2-user/
+             wget 'https://aws-codedeploy-eu-west-1.s3.eu-west-1.amazonaws.com/latest/install'
+             chmod +x ./install
+             sudo ./install auto
 
              echo "END user data instructions"
             #  sudo -i
