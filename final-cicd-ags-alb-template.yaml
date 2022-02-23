@@ -683,7 +683,7 @@ Resources:
     Type: 'AWS::CodePipeline::Pipeline'
     DependsOn: Secret
     Properties:
-      Name: !Sub ${Client}-${Env}-${ApplicationName}-code-pipeline
+      # Name: !Sub ${Client}-${Env}-${ApplicationName}-code-pipeline
       ArtifactStore:
         Location: !Ref ArtifactBucket
         Type: S3
@@ -710,7 +710,7 @@ Resources:
                       - '{{resolve:secretsmanager:github_token_${client}_${environment}_${application_name}:SecretString:github_access_token_${client}_${environment}_${application_name}}}'
                       # - '{{resolve:secretsmanager:github_token_test_choixresto:SecretString:github_access_token_test_choixresto}}'
                       - { client: !Ref Client, environment: !Ref Env, application_name: !Ref ApplicationName }
-                PollForSourceChanges: true
+                PollForSourceChanges: false
               RunOrder: 1
           Name: SOURCE
         - Name: Build
