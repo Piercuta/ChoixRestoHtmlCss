@@ -65,6 +65,10 @@ Parameters:
     Type: String
     Description: ...
     Default: piercuta
+  CertificateArn:
+    Type: String
+    Description: ...
+    Default: arn:aws:acm:eu-west-1:647408608766:certificate/a5b6add8-26ef-4a5b-95c1-0469f2a2f82d
 
 Resources:
   
@@ -355,7 +359,7 @@ Resources:
       Port: '443'
       Protocol: HTTPS
       Certificates: 
-        - CertificateArn: arn:aws:acm:eu-west-1:647408608766:certificate/a5b6add8-26ef-4a5b-95c1-0469f2a2f82d
+        - CertificateArn: !Ref CertificateArn
 
   ALBTargetGroup5000:
     Type: 'AWS::ElasticLoadBalancingV2::TargetGroup'
